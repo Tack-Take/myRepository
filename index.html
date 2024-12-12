@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会費精算アプリ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        label {
+            font-weight: bold;
+        }
+        input[type="number"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100%;
+        }
+        button {
+            padding: 10px;
+            font-size: 16px;
+            color: #fff;
+            background-color: #4CAF50;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .results p {
+            font-size: 18px;
+            margin: 8px 0;
+        }
+        .results span {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        .results .yen {
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>会費精算アプリ</h1>
+        <form>
+            <label>合計金額: <input type="number" id="total_amount" placeholder="例: 75000"></label>
+            <label>参加人数: <input type="number" id="total_people" placeholder="例: 14"></label>
+            <label>高くする金額: <input type="number" id="extra_amount" placeholder="例: 1000"></label>
+            <label>高くする人数: <input type="number" id="extra_people" placeholder="例: 5"></label>
+            <label>切り上げ単位: <input type="number" id="rounding_unit" placeholder="例: 500"></label>
+            <button type="button" id="submit_button" onclick="calculate()">計算</button>
+        </form>
+        <div class="results">
+            <p>重み付け割勘（安い人）: <span id="result_low">-</span> <span class="yen">円</span></p>
+            <p>重み付け割勘（高い人）: <span id="result_high">-</span> <span class="yen">円</span></p>
+            <p>精算後残額: <span id="result_deficit">-</span> <span class="yen">円</span></p>
+        </div>
+    </div>
+    <script>
+        function calculate() {
+            const totalAmount = parseFloat(document.getElementById("total_amount").value);
+            const totalPeople = parseInt(document.getElementById("total_people").value);
+            const extraAmount = parseFloat(document.getElementById("extra_amount").value);
+            const extraPeople = parseInt(document.getElementById("extra_people").value);
+            const roundingUnit = parseInt(document.getElementById("rounding_unit").value);
+
+            // 安い人と高い人の人数
+            const lowPeople = totalPeople - extraPeople;
+
+            // 安い人の金額を計算
+            const lowShare = Math.ceil(((totalAmount - (extraPeople * extraAmount)) / totalPeople) / roundingUnit) * roundingUnit;
+
+            // 高い人の金額を計算
+            const highShare = Math.ceil((lowShare + extraAmount) / roundingUnit) * roundingUnit;
+
+            // 実際の計算合計
+            const calculatedTotal = (lowShare * lowPeople) + (highShare * extraPeople);
+
+            // 精算後残額を計算し、必ず切り上げ
+            const deficit = Math.max(0, Math.ceil((calculatedTotal - totalAmount) / roundingUnit) * roundingUnit);
+
+            // 数値を3桁区切りで表示
+            const formatNumber = (num) => num.toLocaleString('ja-JP');
+
+            // 結果を表示
+            document.getElementById("result_low").innerText = formatNumber(lowShare);
+            document.getElementById("result_high").innerText = formatNumber(highShare);
+            document.getElementById("result_deficit").innerText = formatNumber(deficit);
+        }
+    </script>
+</body>
+</html>
